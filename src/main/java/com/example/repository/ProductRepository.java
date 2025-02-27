@@ -1,4 +1,4 @@
-package main.java.com.example.repository;
+package com.example.repository;
 
 public class ProductRepository {
 }

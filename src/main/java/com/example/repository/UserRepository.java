@@ -1,4 +1,24 @@
-package main.java.com.example.repository;
+package com.example.repository;
 
-public class UserRepository {
+import com.example.model.User;
+import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+
+@Repository
+@SuppressWarnings("rawtypes")
+public class UserRepository extends MainRepository<User>{
+    @Override
+    protected String getDataPath() {
+        return "";
+    }
+
+    @Override
+    protected Class<User[]> getArrayType() {
+        return null;
+    }
+
+    public UserRepository() {
+    }
+
 }

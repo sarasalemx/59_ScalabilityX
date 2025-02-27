@@ -1,4 +1,13 @@
-package main.java.com.example.model;
+package com.example.model;
+import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Component
 public class Cart {
+    private UUID id;
+    private UUID userId;
+    private List<Product> products=new ArrayList<>();
 }
