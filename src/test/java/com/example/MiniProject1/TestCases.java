@@ -1,5 +1,6 @@
 package com.example.MiniProject1;
 
+import ch.qos.logback.core.net.ObjectWriter;
 import com.example.controller.CartController;
 import com.example.controller.OrderController;
 import com.example.controller.ProductController;
@@ -16,6 +17,7 @@ import com.example.service.CartService;
 import com.example.service.OrderService;
 import com.example.service.ProductService;
 import com.example.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,10 +26,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.io.File;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 public class TestCases {
@@ -45,16 +50,14 @@ public class TestCases {
 
 
 
-    @BeforeEach
-    void tearDown() {
-        cartRepository.deleteAllCarts(); // Clear all carts after each test to ensure tests do not affect each other
-    }
+
 
 
 
     @Test
     void getCarts_shouldReturnEmptyList_whenNoCarts() {
         // Arrange: Ensure that the repository is empty
+        cartService.deleteAllCarts();  // Clear any existing carts
 
 
         // Act: Call the method to test
@@ -97,6 +100,8 @@ public class TestCases {
 
     @Test
     void getCarts_shouldReturnSingleCart_whenOneCartExists() {
+
+        cartService.deleteAllCarts();  // Clear any existing carts
         // Arrange: Set up a single cart
         Cart cart = new Cart();
         cart.setId(UUID.randomUUID());
@@ -297,7 +302,7 @@ public class TestCases {
         cartRepository.addCart(cart); // Save the cart in the repository
 
         // Act: Call deleteProductFromCart to remove the product
-        cartService.deleteProductFromCart(userId, product);
+        cartService.deleteProductFromCart2(cart.getId(), product.getId());
 
         // Assert: Verify the product is removed from the cart
         Cart updatedCart = cartService.getCartByUserId(userId);
@@ -313,28 +318,38 @@ public class TestCases {
 
         // Act & Assert
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            cartRepository.deleteProductFromCart(cartId, productId);
+            cartService.deleteProductFromCart2(cartId, productId);
         });
 
         assertEquals("Cart with ID " + cartId + " not found.", exception.getMessage());
     }
 
+
     @Test
     public void testDeleteProductFromCart_ProductNotFound() {
         // Arrange
-        UUID cartId = UUID.randomUUID();
+        UUID cartId = UUID.randomUUID();              // Use this cartId throughout
         UUID productId = UUID.randomUUID();
 
-        Cart cart = new Cart(cartId, new ArrayList<>()); // Empty cart
-        List<Cart> carts = new ArrayList<>(List.of(cart));
+        Cart cart1 = new Cart();
+        cart1.setId(cartId);                          // Set the SAME cartId here
+        cart1.setUserId(UUID.randomUUID());
+        cart1.setProducts(new ArrayList<>());         // Empty product list
+        cartService.addCart(cart1);                   // Add cart using this ID
 
         // Act & Assert
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            cartRepository.deleteProductFromCart(cartId, productId);
+            cartService.deleteProductFromCart2(cartId, productId);
         });
 
         assertEquals("Product with ID " + productId + " not found in cart.", exception.getMessage());
     }
+
+
+
+
+
+
 
 
     @Test
@@ -411,7 +426,7 @@ public class TestCases {
     }
 
 
-    // ***** ORDER SERVICEEEEEEEE *********
+    // ************** ORDER SERVICEEEEEEEE **************************
 
     @Test
     void addOrder_shouldAddValidOrder() {
@@ -502,7 +517,27 @@ public class TestCases {
         //assertTrue(orders.contains(order1));  // Ensure order1 is present
         //assertTrue(orders.contains(order2));  // Ensure order2 is present
     }
-    // question mark
+
+    @Test
+    void getOrders_shouldThrowException_whenOrderListIsNull() {
+        // Create a custom test OrderService with a faulty OrderRepository
+        OrderRepository nullReturningOrderRepository = new OrderRepository() {
+            @Override
+            public ArrayList<Order> getOrders() {
+                return null; // Simulate bad scenario
+            }
+        };
+
+        OrderService testOrderService = new OrderService(nullReturningOrderRepository);
+
+        // Act & Assert
+        Exception exception = assertThrows(IllegalStateException.class, testOrderService::getOrders);
+        assertEquals("Order list is null", exception.getMessage());
+    }
+
+
+
+
     @Test
     void addOrder_shouldThrowException_whenTotalPriceIsNegative() {
         // Arrange: Create an order with a negative total price
@@ -659,7 +694,7 @@ public class TestCases {
     }
 
 
-    //***** PRODUCTT SERVICEE *******
+    //************* PRODUCTT SERVICEE *****************
 
     @Test
     void getProducts_shouldReturnAllProducts() {
@@ -1003,7 +1038,7 @@ public class TestCases {
         });
     }
 
-    //*********** USER SERVICE ****************
+    //******************************** USER SERVICE *******************************************
 
     @Test
     void addUser_shouldAddUser_whenUserIsValid() {
@@ -1494,3 +1529,4 @@ public class TestCases {
 
 
 }
+

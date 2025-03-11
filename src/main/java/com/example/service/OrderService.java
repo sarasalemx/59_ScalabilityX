@@ -17,8 +17,12 @@ public class OrderService  extends  MainService<Order>{
     }
 
 
-    public ArrayList<Order> getOrders(){
-        return orderRepository.getOrders();
+    public ArrayList<Order> getOrders() {
+        ArrayList<Order> orders = orderRepository.getOrders();
+        if (orders == null) {
+            throw new IllegalStateException("Order list is null");
+        }
+        return orders;
     }
 
     public Order getOrderById(UUID orderId){

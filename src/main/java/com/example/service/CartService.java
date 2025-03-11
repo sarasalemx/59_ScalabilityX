@@ -75,4 +75,16 @@ public class CartService extends  MainService<Cart> {
 
 
     }
-}
+
+    // Remove a product from a user's cart
+    public void deleteProductFromCart2(UUID cartId, UUID productId) {
+
+
+            cartRepository.deleteProductFromCart(cartId, productId);
+
+
+        }
+
+
+    }
+
