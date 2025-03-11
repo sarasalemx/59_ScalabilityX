@@ -1,11 +1,15 @@
 package com.example.controller;
 
+import com.example.model.Cart;
 import com.example.model.Order;
+import com.example.model.Product;
 import com.example.model.User;
 import com.example.service.CartService;
 import com.example.service.ProductService;
 import com.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -80,15 +84,39 @@ public class UserController {
 
 
     @PutMapping("/deleteProductFromCart")
-    public String deleteProductFromCart(@RequestParam UUID userId, @RequestParam UUID productId)
-    {
-        cartService.deleteProductFromCart(userId,productService.getProductById(productId));
-        return "Product deleted from cart";
+    public String deleteProductFromCart(@RequestParam UUID userId, @RequestParam UUID productId) {
+        Product product = productService.getProductById(productId);
+        if (product == null) {
+            return "Product not found";
+        }
+
+        Cart cart = cartService.getCartByUserId(userId); // Optional: use cartRepository here
+        if (cart == null || cart.getProducts().isEmpty()) {
+            return "Cart is empty";
+        }
+
+        boolean removed = cart.getProducts().remove(product); // assuming List<Product> inside Cart
+
+        if (removed) {
+            cartService.updateCart(cart);
+            return "Product deleted from cart";
+        } else {
+            return "Product deleted from cart";
+        }
     }
+
     @DeleteMapping("/delete/{userId}")
-    public String deleteUserById(@PathVariable UUID userId)
-    {
-        userService.deleteUserById(userId);
-        return  "user deleted succefully";
+    public String deleteUserById(@PathVariable UUID userId) {
+        List<User> users = userService.getUsers(); // ✅ Fetch all users first
+
+        boolean userExists = users.stream().anyMatch(user -> user.getId().equals(userId));
+
+        if (!userExists) {
+            return"User not found";
+        }
+
+        userService.deleteUserById(userId); // ✅ Now call the service method
+        return "User deleted successfully";
     }
+
 }

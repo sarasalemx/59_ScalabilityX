@@ -41,12 +41,9 @@ public class ProductController {
     }
 
     @PutMapping("/update/{productId}")
-    public Product updateProduct(@PathVariable UUID productId, @RequestBody Map<String,Object>
-            body)
-    {
-        String newName = (String) body.get("name"); // Extract the new name
-        double newPrice = Double.parseDouble(body.get("price").toString()); // Extract and convert the price
-
+    public Product updateProduct(@PathVariable UUID productId, @RequestBody Map<String, Object> updates) {
+        String newName = (String) updates.get("newName");
+        double newPrice = ((Number) updates.get("newPrice")).doubleValue();
         return productService.updateProduct(productId, newName, newPrice);
     }
 

@@ -3,6 +3,7 @@ package com.example.controller;
 import com.example.model.Order;
 import com.example.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -40,9 +41,13 @@ public class OrderController {
     }
 
     @DeleteMapping("/delete/{orderId}")
-    public String deleteOrderById(@PathVariable UUID orderId){
-        orderService.deleteOrderById(orderId);
-        return  "Order deleted successfully";
+    public String deleteOrderById(@PathVariable UUID orderId) {
+        try {
+            orderService.deleteOrderById(orderId);
+            return "Order deleted successfully";
+        } catch (IllegalArgumentException e) {
+            return "Order not found";
+        }
     }
 
 
